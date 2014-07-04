@@ -142,17 +142,20 @@ require(['use!Geosite',
         // However, it seems like the PrintTask cannot render the map legend
         // without all parent layer ids present.
         getLegendLayers: function(map) {
-            var model = this,
-                result = [];
-            _.each(map.getLayersVisibleAtScale(), function(layer) {
-                if (layer.visibleLayers && layer.visibleLayers.length > 0 && layer.visibleLayers[0] !== -1) {
+            var model = this;
+            return _.map(
+                // Select layers with visible sub layers.
+                _.filter(map.getLayersVisibleAtScale(), function(layer) {
+                    return layer.visibleLayers && layer.visibleLayers.length > 0 && layer.visibleLayers[0] !== -1;
+                }),
+                // Return LegendLayer with visible sub layers and related parent layers.
+                function(layer) {
                     var legendLayer = new esri.tasks.LegendLayer();
                     legendLayer.layerId = layer.id;
                     legendLayer.subLayerIds = model.getLayerParents(layer, layer.visibleLayers);
-                    result.push(legendLayer);
+                    return legendLayer;
                 }
-            });
-            return result;
+            );
         },
 
         // Return union of layerIds and related parent layer ids.
